@@ -136,12 +136,6 @@ SimpleRPL附带一个可以与正在运行的实例通信的辅助工具，以�
 A word on security
 ------------------
 
-SimpleRPL is expected to be run on a secure environment (either completely
-isolated, or using link-layer security). This is because we use it as a
-prototype implementation. There is a lot of case where the implementation will
-(purposely) stop working (because a function is not implemented yet). This
-means that someone with evil intents could craft packets designed to shut down
-the implementation.
 SimpleRPL预计将在安全的环境中运行（完全隔离运行或使用链路层安全）。这是因为我们把它当作一个
 原型实现。执行会有很多情况（故意）停止工作（因为功能尚未实现）。这个意味着有邪恶意图的人可以制作出关闭的数据包实施。
 Authors
