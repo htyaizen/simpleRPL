@@ -1,55 +1,43 @@
 SimpleRPL
 =========
+SimpleRPL是基于Linux的低功耗和有损路由协议的实现[RFC 6550]（https://tools.ietf.org/html/rfc6550）中定义的网络（RPL）。
+它旨在通过带来一个完整的Linux无线传感器网络生态系统（希望）完全兼容的RPL实现。
 
-SimpleRPL is Linux-based implementation of the Routing Protocol for Low-Power and Lossy
-Networks (RPL) as defined in [RFC 6550](https://tools.ietf.org/html/rfc6550).
-It aims to complete the Linux Wireless Sensor Network ecosystem by bringing a
-(hopefully) fully-compliant RPL implementation.
-
-What is implemented? What are the implementations choices?
+实现了什么？实现了什么选择？
 ----------------------------------------------------------
+*无组播支持的存储模式（MOP值为2）
+*作为DODAG根或RPL路由器
+*实现目标函数零（RFC 6552）。然而，rank增加总是一样固定的价值。这是因为没有反馈
+  第2层或第3层（尚未），这意味着无法指示链接质量。
+*存储无限数量的DIO父母
+*存储一个DAO父母at time
+*支持多个接口（即节点可以充当两个链路层之间的桥梁）
 
-* storing mode of operation with no multicast support (MOP value 2)
-* act as a DODAG root or as a RPL router
-* implement Objective function zero (RFC 6552). However, the rank increase is
-  always a same fixed value.  This is because there is no feedback from the
-  layer 2 or the layer 3 (yet), meaning that there can be no indication on the
-  link quality.
-* store unbounded number of DIO parents
-* store one DAO parent at time
-* support multiple interfaces (i.e. node can act as a bridge between two link-layer technology)
-
-What is not implemented?
+尚未实现的
 ------------------------
+*路由metrics（如RFC 6551所定义）未被实现，这是因为目前没有办法从IEEE 802.15.4链路中检索链路质量信息
+*不支持浮动DODAG
+*不支持安全机制（因此，如果需要，应该实施在链路层）
+*不支持叶功能
+* DAO消息中没有路径控制支持
 
-* Routing metrics (as defined in RFC 6551) are not implemented, that is because
-  there is currently no way to retrieve link quality information from IEEE 802.15.4
-  links
-* no support for floating DODAG
-* no support for security (hence, if it is required, it should be implemented
-  at the Link-Layer)
-* no support for leaf function
-* no Path Control support in DAO messages
-
-Known limitations
+须知限制
 -----------------
+*一次只有一个DODAG根可以存在于网络中：如果同一个DODAG存在两个根，则它们将永久竞争
+*一次只能加入一个DODAG
 
-* only one DODAG root can exists in the network at once: if two root exists for the same DODAG, they will compete forever
-* only one DODAG can be joined at once
-
-Installation
+安装
 ------------
 
 ### List of dependencies
 
-SimpleRPL is written in Python 2.x and requires the following libraries to be installed:
-
-* [libnl3](http://www.infradead.org/~tgr/libnl/): a netlink library
-* [pyzmq](http://pypi.python.org/pypi/pyzmq): python bindings for the famous ZeroMQ library
-* [Routing](http://github.com/tcheneau/Routing/): a python wrapper around libnl3 that can manage routes, addresses and link layer addresses
-* [RplIcmp](http://github.com/tcheneau/RplIcmp/): a python module that simplify operations through ICMP sockets in Python.
-* [python-zmq](http://www.zeromq.org/bindings:python): Pythong binding for the Zero Message Queue (0mq) library
-* [python-argparse](https://pypi.python.org/pypi/argparse): a python argument parser module (only needed if your Python version is < 2.7)
+SimpleRPL是用Python 2.x编写的，需要安装下列库：
+* [libnl3](http://www.infradead.org/~tgr/libnl/): netlink库
+* [pyzmq](http://pypi.python.org/pypi/pyzmq): 用来绑定著名的ZeroMQ库和Python
+* [Routing](http://github.com/tcheneau/Routing/): 一个可以管理路由，地址和链路层地址的libnl3上的python包
+* [RplIcmp](http://github.com/tcheneau/RplIcmp/): 一个通过Python中的ICMP套接字来简化操作的python模块。
+* [python-zmq](http://www.zeromq.org/bindings:python): Python绑定ZeroMQ（0mq）库
+* [python-argparse](https://pypi.python.org/pypi/argparse):一个python参数解析器模块（只需要你的Python版本是<2.7）
 
 
 ### Sytem-wide installation
@@ -60,20 +48,17 @@ From the root directory:
 
 
 ### Bulding up RPMs
-
-You might prefer to build a package (so that you can easily deploy, upgrade or
-remove SimpleRPL). All you need to do, from the root directory, is:
+您可能更喜欢构建软件包（以便您可以轻松部署，升级或删除SimpleRPL）。所有你需要做的，从根目录是：
 
     $ python setup.py bdist_rpm
 
-How to use
+如何使用
 ----------
 
 ### General information
 
-SimpleRPL has been designed to be configured only through command line arguments.
-
-Here is a list of arguments recognized by simpleRPL:
+SimpleRPL的设计只能通过命令行参数进行配置。
+以下是simpleRPL识别的参数列表:
 
     $ simpleRPL.py --help
     usage: simpleRPL.py [-h] [-d DODAGID] [-i IFACE] [-R] [-v] [-p PREFIX]
@@ -93,36 +78,31 @@ Here is a list of arguments recognized by simpleRPL:
                             Routable prefix(es) that this node advertise (only for
                             DODAG root, optional)
 
-Please note that due to its functioning SimpleRPL requires root access in the system.
+请注意，由于其功能简单，SimpleRPL需要在系统中进行root访问。
 
 ### Running a RPL Router
 
-If you want to start a RPL Router that listen on all interfaces:
+如果要启动在所有接口上侦听的RPL路由器：
 
      $ simpleRPL.py
 
-In this case the node will join the first DODAG it receives a DIO from.
+在这种情况下，节点将加入收到DIO消息的第一个DODAG。
 
-If you want a more verbose output: turn on debugging with "-v" argument (can be repeated up to five times for a even more verbose output ("-vvvvv")).
+如果您想要更详细的输出：使用“-v”参数打开调试（可以重复多达五次以获得更详细的输出（“-vvvvv”））。
 
 ### Running a DODAG Root
-
-A DODAG Root needs a global IPv6 address that is assigned on one of its interfaces as a DODAG ID 
-Here is an example of a DODAG whose DODAG ID is 2001:aaaa::0202:0007:0001
-(assigned on any of the interfaces) that advertised the 2001:aaaa::/64 prefix.
+DODAG根需要一个全局IPv6地址，它在其一个接口上分配为DODAG ID。以下是DODAG ID为2001的DODAG示例：
+aaaa :: 0202：0007：0001（在任何接口上分配），它们公布了2001：aaaa :: / 64前缀。
 
     $ simpleRPL.py -vvvvv -R -d 2001:aaaa::0202:0007:0001 -p 2001:aaaa::
 
 ### Getting information on a running instance
+SimpleRPL附带一个可以与正在运行的实例通信的辅助工具，以便检索内部值或触发一些管理功能
+（本地修复，全球修复等）。此工具名为_cliRPL.py_。
 
-SimpleRPL comes with a companion tool that can talk to a running instance in
-order to retrieve internal values or to trigger some administration function
-(local repair, global repair, etc). This tool is name _cliRPL.py_. 
+当SimpleRPL启动时，它将IPC套接字绑定到当前目录。这涉及_cliRPL.py_需要在同一目录中被调用。
 
-When SimpleRPL is started, it binds an IPC socket to the current directory. This
-involves that _cliRPL.py_ needs to be invoked in the same directory.
-
-Getting the list of available commands:
+获取可用命令列表：
 
     $ cliRPL.py help
     show-preferred-parent: List the currently preferred (DIO) parent
@@ -140,21 +120,18 @@ Getting the list of available commands:
     help: List this help
     list-neighbors-verbose: List the neighbors and their corresponding DODAG
 
-For example, if you want to trigger a global repair from the DODAG root:
-
-    $ cliRPL.py global-repair
+例如，如果你想从DODAG root触发一个全局修复：
+    $ cliRPL.py global-repair
     global repair triggered, bumping new version for DODAG:
     DODAGID: 2001:aaaa::202:7:1; new version: 241
+    全球修复触发，碰撞新版本的DODAG：
+    DODAGID：2001：aaaa :: 202：7：1;新版本：241
 
-
-Interoperability with other implementations
+与其他实现的交互
 -------------------------------------------
-
-No interoperability test has been performed for the moment. This is because the
-6LoWPAN stack that ships with the Linux kernel currently suffers from some
-limitation. Once basic interoperability is achieved with other operating
-systems, such as Contiki, interoperability test will become the topmost
-priority.
+暂时没有执行交互性测试。这是因为目前，Linux内核随附的6LoWPAN堆栈遭受了一些困扰
+局限性。一旦与其他操作性系统，如Contiki，实现最基本的交互性测试。交互性测试将成为最高的
+优先。
 
 A word on security
 ------------------
@@ -165,7 +142,8 @@ prototype implementation. There is a lot of case where the implementation will
 (purposely) stop working (because a function is not implemented yet). This
 means that someone with evil intents could craft packets designed to shut down
 the implementation.
-
+SimpleRPL预计将在安全的环境中运行（完全隔离运行或使用链路层安全）。这是因为我们把它当作一个
+原型实现。执行会有很多情况（故意）停止工作（因为功能尚未实现）。这个意味着有邪恶意图的人可以制作出关闭的数据包实施。
 Authors
 -------
 
